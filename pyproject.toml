@@ -1,0 +1,13 @@
+[project]
+name = "commitgpt"
+version = "0.1.0"
+description = "Generate conventional commit messages using Claude"
+authors = [{name = "Justin"}]
+requires-python = ">=3.12"
+dependencies = [
+    "click",
+    "anthropic"
+]
+
+[project.scripts]
+commitgpt = "commitgpt.cli:cli"

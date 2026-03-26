@@ -1,0 +1,16 @@
+README.md
+pyproject.toml
+commitgpt/__init__.py
+commitgpt/cli.py
+commitgpt/client.py
+commitgpt/diff.py
+commitgpt/hook.py
+commitgpt/prompt.py
+commitgpt.egg-info/PKG-INFO
+commitgpt.egg-info/SOURCES.txt
+commitgpt.egg-info/dependency_links.txt
+commitgpt.egg-info/entry_points.txt
+commitgpt.egg-info/requires.txt
+commitgpt.egg-info/top_level.txt
+tests/test_diff.py
+tests/test_prompt.py
