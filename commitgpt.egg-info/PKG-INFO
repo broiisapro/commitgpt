@@ -5,4 +5,4 @@ Summary: Generate conventional commit messages using Claude
 Author: Justin
 Requires-Python: >=3.12
 Requires-Dist: click
-Requires-Dist: anthropic
+Requires-Dist: requests
