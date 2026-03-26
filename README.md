@@ -4,28 +4,25 @@ A Python CLI tool that generates conventional commit messages from staged git di
 
 ## Why this exists
 
-Writing good commit messages is slow and inconsistent.  
-This tool automates that process by:
+Writing good commit messages is slow and inconsistent. This tool automates it by:
 
 - Reading your staged changes (`git diff --cached`)
 - Sending a structured prompt to an LLM
 - Returning a clean, valid conventional commit message
 
-The goal is speed, consistency, and correctness.
-
 ---
 
-## Features (current)
+## Features
 
 - CLI command: `commitgpt suggest`
 - Reads staged git diff
 - Truncates large diffs intelligently (prioritizes added lines)
-- Uses OpenRouter (auto model selection) for generation
-- Enforces conventional commit format via validation
+- Uses OpenRouter for LLM generation
+- Validates output against conventional commit format
 
 ---
 
-## Planned (Day 2)
+## Planned
 
 - Interactive mode (accept / edit / regenerate)
 - Git hook integration (`prepare-commit-msg`)
@@ -35,7 +32,6 @@ The goal is speed, consistency, and correctness.
 ---
 
 ## Installation
-
 ```bash
 git clone <your-repo-url>
 cd commitgpt
@@ -44,89 +40,70 @@ python3.12 -m venv venv
 source venv/bin/activate
 
 pip install -e .
+```
 
 Set your API key:
-
+```bash
 export OPENROUTER_API_KEY=your_key_here
+```
 
+---
 
-⸻
-
-Usage
+## Usage
 
 Stage your changes:
-
+```bash
 git add .
+```
 
 Generate a commit message:
-
+```bash
 commitgpt suggest
+```
 
+---
 
-⸻
-
-Example
+## Example
 
 Input (diff):
-
+```diff
 + def add(a, b):
 +     return a + b
+```
 
 Output:
-
+```
 feat: add basic addition function
+```
 
+---
 
-⸻
+## Design Decisions
 
-Design Decisions
+**Diff truncation** — Large diffs are reduced by keeping added lines (most informative), sampling removed lines, and capping total size to control token usage.
 
-Diff Truncation Strategy
+**Prompt engineering** — The model is told to return exactly one commit message, follow Conventional Commits strictly, and skip explanations or extra formatting.
 
-Large diffs are reduced by:
-	•	Keeping added lines (most informative)
-	•	Sampling removed lines
-	•	Limiting total size to control token usage
-
-Prompt Engineering
-
-The model is instructed to:
-	•	Return exactly one commit message
-	•	Follow Conventional Commits strictly
-	•	Avoid explanations or formatting
-
-Output Validation
-
-Responses are validated against this pattern:
-
-^(feat|fix|docs|style|refactor|test|chore)($begin:math:text$\.\+$end:math:text$)?: .+
+**Output validation** — Responses are validated against:
+```
+^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: .+
+```
 
 Invalid outputs are rejected.
 
-⸻
+---
 
-Tech Stack
-	•	Python 3.12
-	•	Click (CLI)
-	•	OpenRouter API (LLM access)
-	•	pytest
-	•	Ruff
-	•	GitHub Actions (CI)
+## Tech Stack
 
-⸻
-
-Why this project matters
-
-This project demonstrates:
-	•	LLM integration in real workflows
-	•	Prompt engineering for structured outputs
-	•	Handling unbounded input (git diffs)
-	•	Building developer tooling
-
-⸻
-
-License
-
-MIT
+- Python 3.12
+- Click (CLI)
+- OpenRouter API (LLM access)
+- pytest
+- Ruff
+- GitHub Actions (CI)
 
 ---
+
+## License
+
+MIT
