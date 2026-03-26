@@ -5,8 +5,8 @@ import requests
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
-# Using auto model selection
-MODEL = "openrouter/meta-llama/llama-3.3-70b-instruct:free"
+# Use auto for now to ensure stability (we will optimize later)
+MODEL = "openrouter/auto"
 
 COMMIT_REGEX = re.compile(
     r"^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: .+"
