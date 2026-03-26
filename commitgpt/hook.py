@@ -15,10 +15,19 @@ def run_hook(commit_msg_file: str) -> None:
     """
     path = Path(commit_msg_file)
 
-    # If file already has content, do not overwrite
-    if path.exists() and path.read_text().strip():
-        return
+    # --- Check if a real message already exists (ignore comments) ---
+    if path.exists():
+        content = path.read_text()
 
+        non_comment_lines = [
+            line for line in content.splitlines()
+            if not line.strip().startswith("#")
+        ]
+
+        if any(line.strip() for line in non_comment_lines):
+            return
+
+    # --- Get staged diff ---
     try:
         diff = get_staged_diff()
     except Exception:
@@ -27,6 +36,7 @@ def run_hook(commit_msg_file: str) -> None:
     if not diff.strip():
         return
 
+    # --- Generate commit message ---
     try:
         truncated = truncate_diff(diff)
         prompt = build_prompt(truncated)
@@ -34,6 +44,7 @@ def run_hook(commit_msg_file: str) -> None:
     except Exception:
         return
 
+    # --- Write message ---
     path.write_text(message + "\n")
 
 
