@@ -1,37 +1,34 @@
 # commitgpt
 
-A Python CLI tool that generates conventional commit messages from staged git diffs using an LLM via OpenRouter.
+A Python CLI and Git hook that generates **conventional commit messages** from staged diffs using an LLM.
 
-## Why this exists
+---
 
-Writing good commit messages is slow and inconsistent. This tool automates it by:
+## Overview
 
-- Reading your staged changes (`git diff --cached`)
-- Sending a structured prompt to an LLM
-- Returning a clean, valid conventional commit message
+Writing consistent commit messages is slow and error-prone.  
+`commitgpt` automates this by converting staged changes into a validated, conventional commit message.
+
+It integrates directly into your workflow via a CLI and optional Git hook.
 
 ---
 
 ## Features
 
-- CLI command: `commitgpt suggest`
-- Reads staged git diff
-- Truncates large diffs intelligently (prioritizes added lines)
-- Uses OpenRouter for LLM generation
-- Validates output against conventional commit format
-
----
-
-## Planned
-
-- Interactive mode (accept / edit / regenerate)
+- Generate commit messages from staged diffs (`git diff --cached`)
+- Interactive CLI:
+  - accept
+  - edit
+  - regenerate
 - Git hook integration (`prepare-commit-msg`)
-- Automatic commit message insertion
-- Expanded test coverage
+- Automatic commit message insertion (no copy/paste)
+- Intelligent diff truncation (prioritizes added lines)
+- Strict output validation (conventional commits format)
 
 ---
 
 ## Installation
+
 ```bash
 git clone <your-repo-url>
 cd commitgpt
@@ -43,6 +40,7 @@ pip install -e .
 ```
 
 Set your API key:
+
 ```bash
 export OPENROUTER_API_KEY=your_key_here
 ```
@@ -51,45 +49,98 @@ export OPENROUTER_API_KEY=your_key_here
 
 ## Usage
 
-Stage your changes:
+### CLI mode
+
 ```bash
 git add .
-```
-
-Generate a commit message:
-```bash
 commitgpt suggest
 ```
+
+### Git hook (recommended)
+
+Install the hook:
+
+```bash
+commitgpt install-hook
+```
+
+Now simply run:
+
+```bash
+git commit
+```
+
+A commit message will be generated automatically.
 
 ---
 
 ## Example
 
 Input (diff):
-```diff
+
+```python
 + def add(a, b):
 +     return a + b
 ```
 
 Output:
+
 ```
 feat: add basic addition function
 ```
 
 ---
 
-## Design Decisions
+## How it Works
 
-**Diff truncation** — Large diffs are reduced by keeping added lines (most informative), sampling removed lines, and capping total size to control token usage.
+### 1. Diff Processing
 
-**Prompt engineering** — The model is told to return exactly one commit message, follow Conventional Commits strictly, and skip explanations or extra formatting.
+- Reads staged changes using `git diff --cached`
+- Truncates large diffs to control token usage
+- Prioritizes added lines over removed lines
 
-**Output validation** — Responses are validated against:
+### 2. Prompt Engineering
+
+- Enforces a strict output contract:
+  - single line only
+  - conventional commits format
+  - imperative, concise language
+- Includes examples and banned patterns to reduce ambiguity
+
+### 3. LLM Integration
+
+- Sends prompt to OpenRouter
+- Uses short, non-streaming responses for low latency
+
+### 4. Output Validation
+
+Ensures format matches:
+
 ```
 ^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: .+
 ```
 
-Invalid outputs are rejected.
+Rejects invalid outputs.
+
+### 5. Git Hook Integration
+
+- Uses `prepare-commit-msg`
+- Writes directly to Git's commit message file
+- Skips overwrite if user already provided a message
+- Runs safely without breaking commits on failure
+
+---
+
+## Design Considerations
+
+**Determinism over creativity**  
+Strict prompts and output validation ensure consistent, predictable results.
+
+**Fail-safe behavior**  
+The hook never blocks commits if the API fails.
+
+**Minimal friction**  
+Optional full automation via Git hook — zero extra steps once installed.
 
 ---
 
@@ -97,17 +148,13 @@ Invalid outputs are rejected.
 
 - Python 3.12
 - Click (CLI)
-- OpenRouter API (LLM access)
+- OpenRouter API
 - pytest
 - Ruff
-- GitHub Actions (CI)
+- GitHub Actions
 
 ---
 
 ## License
 
-MIT# hook test
-# hook test
-# hook test
-# hook test
-# hook test
+MIT
