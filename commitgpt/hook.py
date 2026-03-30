@@ -41,8 +41,8 @@ def run_hook(commit_msg_file: str) -> None:
         truncated = truncate_diff(diff)
         prompt = build_prompt(truncated)
         message = generate_commit_message(prompt)
-    except Exception:
-        print("HOOK ERROR:", str(e))
+    except Exception as e:
+        print("HOOK ERROR:", e)
         return
 
     # --- Write message ---

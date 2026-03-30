@@ -56,6 +56,9 @@ def generate_commit_message(prompt: str) -> str:
     except (KeyError, IndexError):
         raise RuntimeError(f"Unexpected API response: {data}")
 
+    if not text or not isinstance(text, str):
+        raise RuntimeError(f"Empty or invalid response from API: {data}")
+
     # --- SANITIZATION ---
     text = text.strip()
 
