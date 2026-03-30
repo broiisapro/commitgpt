@@ -44,10 +44,24 @@ OUTPUT FORMAT:
 
 RULES:
 - First line max 72 characters
+- Use lowercase
 - Use imperative verbs (add, fix, remove)
-- Be specific and technical
-- Bullet points must reflect actual changes
+- Each bullet must start with "-"
+- Each bullet must be non-empty and specific
+- Use 2–4 bullet points (no empty bullets)
+- No trailing "-" or blank bullets
+- Keep bullets concise and technical
 - Do NOT include explanations outside this format
+
+GOOD EXAMPLE:
+
+feat(config): add YAML-based site configuration system
+
+- add sites.yaml for defining scraping targets
+- implement loader to parse YAML into dictionary
+- enable dynamic scraper configuration
+
+enables scalable multi-site scraping without hardcoding
 
 ---
 
