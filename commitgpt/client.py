@@ -6,7 +6,7 @@ import requests
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 # Use auto for now to ensure stability (we will optimize later)
-MODEL = "openrouter/auto"
+MODEL = "openrouter/free"
 
 COMMIT_REGEX = re.compile(
     r"^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: .+"
@@ -41,7 +41,8 @@ def generate_commit_message(prompt: str) -> str:
             "messages": [
                 {"role": "user", "content": prompt}
             ],
-            "max_tokens": 100,
+            "max_tokens": 500,
+            "temperature": 0,
         },
         timeout=30,
     )
@@ -52,9 +53,18 @@ def generate_commit_message(prompt: str) -> str:
     data = response.json()
 
     try:
-        text = data["choices"][0]["message"]["content"]
+        message_data = data["choices"][0]["message"]
     except (KeyError, IndexError):
         raise RuntimeError(f"Unexpected API response: {data}")
+
+    text = message_data.get("content")
+
+    # Fallback for reasoning models
+    if not text:
+        text = message_data.get("reasoning")
+
+    if not text or not isinstance(text, str):
+        raise RuntimeError(f"Empty or invalid response from API: {data}")
 
     if not text or not isinstance(text, str):
         raise RuntimeError(f"Empty or invalid response from API: {data}")
