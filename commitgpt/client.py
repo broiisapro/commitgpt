@@ -5,7 +5,7 @@ import requests
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
-# Use auto for now to ensure stability (we will optimize later)
+# Use auto for now to ensure stability
 MODEL = "openrouter/free"
 
 COMMIT_REGEX = re.compile(
@@ -13,15 +13,16 @@ COMMIT_REGEX = re.compile(
 )
 
 
-def generate_commit_message(prompt: str) -> str:
+def generate_commit_message(prompt: str, detailed: bool = False) -> str:
     """
     Send prompt to OpenRouter and return a validated commit message.
 
     Args:
         prompt: Prompt string
+        detailed: Whether detailed multi-line output is expected
 
     Returns:
-        str: Valid conventional commit message
+        str: Commit message
 
     Raises:
         RuntimeError: API or validation failure
@@ -66,9 +67,6 @@ def generate_commit_message(prompt: str) -> str:
     if not text or not isinstance(text, str):
         raise RuntimeError(f"Empty or invalid response from API: {data}")
 
-    if not text or not isinstance(text, str):
-        raise RuntimeError(f"Empty or invalid response from API: {data}")
-
     # --- SANITIZATION ---
     text = text.strip()
 
@@ -76,15 +74,16 @@ def generate_commit_message(prompt: str) -> str:
     if text.startswith("```"):
         text = text.strip("`").strip()
 
-    # Keep only first line
-    if "\n" in text:
+    # Keep only first line ONLY in non-detailed mode
+    if not detailed and "\n" in text:
         text = text.split("\n")[0].strip()
 
     # Remove surrounding quotes
     text = text.strip('"').strip("'")
 
     # --- VALIDATION ---
-    if not COMMIT_REGEX.match(text):
-        raise RuntimeError(f"Invalid commit message format: {text}")
+    if not detailed:
+        if not COMMIT_REGEX.match(text):
+            raise RuntimeError(f"Invalid commit message format: {text}")
 
     return text

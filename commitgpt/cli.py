@@ -2,6 +2,7 @@ import click
 from pathlib import Path
 import os
 import sys
+import subprocess  # <-- REQUIRED
 
 from commitgpt.diff import get_staged_diff, truncate_diff
 from commitgpt.prompt import build_prompt
@@ -14,17 +15,18 @@ def cli() -> None:
     pass
 
 
-def generate(diff: str) -> str:
+def generate(diff: str, detailed: bool = False) -> str:
     """
     Generate a commit message from diff.
     """
     truncated = truncate_diff(diff)
-    prompt = build_prompt(truncated)
-    return generate_commit_message(prompt)
+    prompt = build_prompt(truncated, detailed=detailed)
+    return generate_commit_message(prompt, detailed=detailed)
 
 
 @cli.command()
-def suggest() -> None:
+@click.option("--detailed", is_flag=True, help="Generate detailed commit message")
+def suggest(detailed: bool) -> None:
     """
     Generate a commit message from staged changes with interaction.
     """
@@ -40,7 +42,7 @@ def suggest() -> None:
 
     while True:
         try:
-            message = generate(diff)
+            message = generate(diff, detailed=detailed)
         except Exception as e:
             click.echo(f"Error generating commit message: {e}")
             return
@@ -67,7 +69,7 @@ def suggest() -> None:
                 click.echo("Empty message. Keeping original.")
                 edited = message
 
-            elif not COMMIT_REGEX.match(edited):
+            elif not detailed and not COMMIT_REGEX.match(edited):
                 click.echo("Invalid commit format. Keeping original.")
                 edited = message
 
@@ -124,3 +126,76 @@ export GIT_EDITOR=:
     os.chmod(hook_path, 0o755)
 
     click.echo("Hook installed at .git/hooks/prepare-commit-msg")
+
+
+@cli.command()
+@click.option("--detailed", is_flag=True, help="Generate detailed commit message")
+def commit(detailed: bool) -> None:
+    """
+    Generate commit message and commit.
+    """
+    try:
+        diff = get_staged_diff()
+    except Exception as e:
+        click.echo(f"Error getting git diff: {e}")
+        return
+
+    if not diff.strip():
+        click.echo("No staged changes found.")
+        return
+
+    while True:
+        try:
+            message = generate(diff, detailed=detailed)
+        except Exception as e:
+            click.echo(f"Error generating commit message: {e}")
+            return
+
+        click.echo("\n--- Suggested Commit ---\n")
+        click.echo(message)
+        click.echo("\n------------------------")
+
+        choice = click.prompt(
+            "\n[y] commit  [e] edit  [r] regenerate  [q] cancel",
+            default="y"
+        ).lower()
+
+        if choice == "y":
+            try:
+                subprocess.run(
+                    ["git", "commit", "-m", message],
+                    check=True
+                )
+                click.echo("Committed.")
+            except subprocess.CalledProcessError as e:
+                click.echo(f"Git commit failed: {e}")
+            return
+
+        elif choice == "e":
+            edited = click.edit(message)
+
+            if not edited:
+                click.echo("Edit cancelled.")
+                continue
+
+            edited = edited.strip()
+
+            try:
+                subprocess.run(
+                    ["git", "commit", "-m", edited],
+                    check=True
+                )
+                click.echo("Committed.")
+            except subprocess.CalledProcessError as e:
+                click.echo(f"Git commit failed: {e}")
+            return
+
+        elif choice == "r":
+            continue
+
+        elif choice == "q":
+            click.echo("Aborted.")
+            return
+
+        else:
+            click.echo("Invalid choice.")

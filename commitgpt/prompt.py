@@ -1,24 +1,18 @@
-def build_prompt(diff: str) -> str:
+def build_prompt(diff: str, detailed: bool = False) -> str:
     """
-    Build a strict prompt for generating a conventional commit message.
-
-    Args:
-        diff: Truncated git diff
-
-    Returns:
-        str: Prompt string
+    Build prompt for commit message generation.
     """
-    return f"""
-You are a tool that generates a single conventional commit message from a git diff.
 
-STRICT RULES (MUST FOLLOW):
+    if not detailed:
+        return f"""
+You generate a conventional commit message.
+
+RULES:
 - Output EXACTLY one line
-- Do NOT include explanations
-- Do NOT include quotes or markdown
-- Use lowercase type and description
-- Use imperative mood (e.g., "add", "fix", "remove")
-- Do NOT use words like: "implement", "update", "improve", "fix up"
-- Keep message concise and specific
+- No explanations
+- Use lowercase
+- Use imperative verbs (add, fix, remove)
+- Do NOT use: implement, update, improve
 
 FORMAT:
 <type>(optional scope): <description>
@@ -26,24 +20,34 @@ FORMAT:
 ALLOWED TYPES:
 feat, fix, docs, style, refactor, test, chore
 
-SCOPE RULES:
-- Use scope when clear (e.g., cli, hook, diff, prompt, client)
-- Omit scope if unclear
+---
 
-DESCRIPTION RULES:
-- Max 72 characters
-- No period at end
-- Describe WHAT changed, not HOW
+Git diff:
+{diff}
 
-GOOD EXAMPLES:
-feat(cli): add suggest command
-fix(hook): handle existing commit messages
-docs: update README installation section
+Return ONLY the commit message.
+""".strip()
 
-BAD EXAMPLES:
-feat: implement feature
-fix: update stuff
-feat(cli): improve logic
+    # --- DETAILED MODE ---
+    return f"""
+You generate a detailed conventional commit message from a git diff.
+
+OUTPUT FORMAT:
+
+<type>(optional scope): <short summary>
+
+- bullet describing key change
+- bullet describing key change
+- bullet describing key change
+
+(optional) final line describing purpose or impact
+
+RULES:
+- First line max 72 characters
+- Use imperative verbs (add, fix, remove)
+- Be specific and technical
+- Bullet points must reflect actual changes
+- Do NOT include explanations outside this format
 
 ---
 
